@@ -44,10 +44,10 @@ class Cols:
     bearing_deg: Optional[str] = "bearing_deg"  # optional
     distance_m: Optional[str] = "distance_m"    # optional
 
-base_path = '/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/train_osm/'
+base_path = '/train_osm/'
 
 csv_path = os.path.join(base_path, 'Amsterdam_Training_area_bins_images_north_only_DepthBearing.csv')  ### Training file
-# csv_path = os.path.join(base_path, 'Amsterdam_New_testing_area_bins_images_DepthBearing.csv')  ### Testing file
+
 
 #============================================#
 #     Adding Noise
@@ -98,14 +98,11 @@ print(f"Saved augmented dataset with size: {len(df_aug)}")
 #    Generating ENU file
 #==============================================#
 '''
-# # base_path = '/media/waqar/data3/GNN/Amsterdam/osm_bins/osm_map_bins/'
-# base_path = '/media/waqar/data3/GNN_noisy/n_1/subsets_NearObj/train/'
+
+# base_path = '/train/'
 N1 = '_80_10'
 in_csv = os.path.join(base_path,file_name + N1 + '.csv')
 out_csv = os.path.join(base_path, file_name + N1 + '_ENU.csv')
-
-# # in_csv = os.path.join(base_path,'Amsterdam_New_testing_area_bins_images_DepthBearing.csv')
-# # out_csv = os.path.join(base_path,'pano_bins_images_temp_ENU_testing.csv')
 cols = Cols(object_id = 'trash_id', cam_lat = 'image_lat' ,cam_lon = 'image_lon',obj_lat = 'trash_lat', obj_lon = 'trash_lon',
                 distance_m = 'depth',bearing_deg = 'obj_bearing')
 '''
@@ -188,20 +185,14 @@ merged_df = inject_noisy_intersections(
 #===============================================#
 '''
 
-# plot_intersections_on_tiles(
-#     intersections_csv=os.path.join(base_path, "Ams_Train_noisy_1_3_80_10_ENU_hyps_with_noisy.csv"),   # your file with columns lon,lat
-#     tiles_dir=os.path.join(base_path, "/tiles_osm_train/tiles/"),                    # folder with bounds_tile_X_Y.txt and .png
-#     image_pattern=os.path.join(base_path, "/tiles/bounds_tile_*.png"),
-#     output_dir= "/media/waqar/data3/GNN_noisy/n1/subsets_NearObj/train_osm/tiles_osm_train/tiles_with_points/",
-#     output_flag_csv="/media/waqar/data3/GNN_noisy/n1/subsets_NearObj/train_osm//Ams_Train_noisy_1_3_80_10_ENU_hyps_with_noisy_flags.csv"
-# )
+
 
 plot_intersections_on_tiles(
-    intersections_csv="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/train_osm/Ams_Train_noisy_1_6_60_20_ENU_hyps_with_noisy.csv",   # your file with columns lon,lat
-    tiles_dir="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/train_osm/tiles_osm_train/tiles/",                       # folder with bounds_tile_X_Y.txt and .png
-    image_pattern="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/train_osm/tiles_osm_train/tiles//bounds_tile_*.png",
-    output_dir="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/train_osm/tiles_osm_train//tiles_with_points/",
-    output_flag_csv="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/train_osm//Ams_Train_noisy_1_6_60_20_ENU_hyps_with_noisy_flags.csv"
+    intersections_csv="/train_osm/Ams_Train_noisy_1_6_60_20_ENU_hyps_with_noisy.csv",   # your file with columns lon,lat
+    tiles_dir="/train_osm/tiles_osm_train/tiles/",                       # folder with bounds_tile_X_Y.txt and .png
+    image_pattern="/train_osm/tiles_osm_train/tiles//bounds_tile_*.png",
+    output_dir="/train_osm/tiles_osm_train//tiles_with_points/",
+    output_flag_csv="/train_osm//Ams_Train_noisy_1_6_60_20_ENU_hyps_with_noisy_flags.csv"
 )
 '''
 #==============================================#
@@ -213,10 +204,6 @@ graphs = build_graphs_option1(os.path.join(base_path, file_name + N1 + "_ENU.csv
                               os.path.join(base_path, file_name + N1 + "_ENU_hyps_with_noisy_flags.csv"),
                               id_col="trash_id", range_col="depth")  # set None if no ranges
 
-# 1) Build graphs for testing data
-# graphs = build_graphs_option1("/media/waqar/data3/GNN/Amsterdam/GNN_v1//pano_bins_images_temp_ENU_testing.csv",
-#                               "/media/waqar/data3/GNN/Amsterdam/GNN_v1//hypothesis_testing.csv",
-#                               id_col="trash_id", range_col="depth")  # set None if no ranges
 
 torch.save(graphs, os.path.join(base_path, file_name + N1 + "_ENU_hypothesis_with_noisy_flags.pt"))
 # print(f"Saved {len(graphs)} graphs to graphs_cache.pt")
@@ -229,38 +216,6 @@ torch.save(graphs, os.path.join(base_path, file_name + N1 + "_ENU_hypothesis_wit
 graphs = torch.load(os.path.join(base_path, file_name + N1 + "_ENU_hypothesis_with_noisy_flags.pt"))
 print(f"Loaded {len(graphs)} graphs from cache")
 
-# records = []
-
-# for g in graphs:
-#     # Convert node features to numpy
-#     x = g.x.numpy()
-#     node_type = g.node_type.numpy()
-
-#     # separate hypothesis nodes
-#     hyps_mask = node_type == 1
-#     hyps = x[hyps_mask]
-
-#     # osm_flag is the last column
-#     osm_flags = hyps[:, -1]
-
-#     # select hypotheses where osm_flag == 1
-#     sel = hyps[osm_flags == 1]
-
-#     # collect info
-#     for row in sel:
-#         tri_E, tri_N, _, _, _, osm_flag = row
-#         records.append({
-#             "object_id": g.object_id,
-#             "tri_E": tri_E,
-#             "tri_N": tri_N,
-#             "osm_flag": osm_flag
-#         })
-
-# # make a DataFrame
-# df_osm1 = pd.DataFrame(records)
-# print("Total flagged hypotheses:", len(df_osm1))
-
-# 
 # '''
 
 #==============================================================#
@@ -379,9 +334,9 @@ for epoch in range(1, 51):
     
 '''  
 #==============================================================#
-#    Training and Validation Loop For EdgeAwareVH
+#    Training and Validation Loop For ECC
 #==============================================================#
-# '''
+ '''
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
@@ -441,7 +396,4 @@ for epoch in range(1, 31):
     torch.cuda.empty_cache()
 
 
-# '''
-#=====================================================#
-#     Testing The model
-#=====================================================#
+ '''
