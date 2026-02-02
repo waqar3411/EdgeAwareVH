@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Oct  9 18:52:34 2025
-
 @author: waqar
 """
 
@@ -38,20 +36,16 @@ class Cols:
     distance_m: Optional[str] = "distance_m"    # optional
 
 N = 'n3'
-base_path = '/media/waqar/data3/GNN_noisy/' + N + '/subsets_NearObj/test_osm/'
+base_path = ''
 
-# csv_path = os.path.join(base_path, 'Ams_mapillary_images_near_bins_15m_Test_DepthBearing.csv')  ### Training file
-csv_path = os.path.join(base_path, 'Amsterdam_New_testing_area_bins_images_DepthBearing.csv')  ### Testing file
+# csv_path = os.path.join(base_path, '')  ### Training file
+csv_path = os.path.join(base_path, '')  ### Testing file
 
 #============================================#
 #     Adding Noise
 #============================================#
-# file_name = 'Ams_map_Test_noisy'
-# file_name = 'Ams_Test_noisy'
+
 # file_name = 'Ams_test_noisy_1_3'
-file_name = 'kitti_inter_cleaned'
-# N1 = '_80_10'
-N1 = '_kitti'
 
 # file_name = 'Ams_Test_noisy'
 # augmented_df = add_noise_to_trash_data(csv_path, n_noise=1, bearing_std=6,n_bearing = 2) ## N2, N#
@@ -123,7 +117,7 @@ convert_grouped_enu(
 
 
 #==================================================#
-#     Traigulation Point Geration
+#     Traigulation Point Generation
 # ==================================================#
 '''
 binary_triangulation_grouped(
@@ -188,40 +182,23 @@ merged_df = inject_noisy_intersections(
 #    osmnx intersection flags
 #===============================================#
 '''
-
-# plot_intersections_on_tiles(
-#     intersections_csv=os.path.join(base_path, "Ams_Train_noisy_1_3_80_10_ENU_hyps_with_noisy.csv"),   # your file with columns lon,lat
-#     tiles_dir=os.path.join(base_path, "/tiles_osm_train/tiles/"),                    # folder with bounds_tile_X_Y.txt and .png
-#     image_pattern=os.path.join(base_path, "/tiles/bounds_tile_*.png"),
-#     output_dir= "/media/waqar/data3/GNN_noisy/n1/subsets_NearObj/train_osm/tiles_osm_train/tiles_with_points/",
-#     output_flag_csv="/media/waqar/data3/GNN_noisy/n1/subsets_NearObj/train_osm//Ams_Train_noisy_1_3_80_10_ENU_hyps_with_noisy_flags.csv"
-# )
-
 plot_intersections_on_tiles(
-    intersections_csv="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/test_osm/kitti_inter_cleaned_ENU_hypothesis.csv",   # your file with columns lon,lat
-    tiles_dir="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/test_osm/tiles/",                       # folder with bounds_tile_X_Y.txt and .png
-    image_pattern="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/test_osm/tiles//bounds_tile_*.png",
-    output_dir="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/test_osm/tiles_with_points/",
-    output_flag_csv="/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/test_osm/kitti_inter_cleaned_kitti_ENU_hypothesis_flags.csv"
+    intersections_csv="_ENU_hypothesis.csv",   # your file with columns lon,lat
+    tiles_dir="/test_osm/tiles/",                       # folder with bounds_tile_X_Y.txt and .png
+    image_pattern="/test_osm/tiles//bounds_tile_*.png",
+    output_dir="/test_osm/tiles_with_points/",
+    output_flag_csv="/test_osm/_ENU_hypothesis_flags.csv"
 )
 '''
 #==============================================#
 #     Graph Genertaion
 # ==============================================#
 '''
-# 1) Build graphs for training data
-# graphs = build_graphs_option1(os.path.join(base_path, file_name + N1 + "_ENU.csv"),
-                              # os.path.join(base_path, file_name + N1 + "_ENU_hyps_with_noisy_flags.csv"),
-                              # id_col="trash_id", range_col="depth")  # set None if no ranges
+
                               
 graphs = build_graphs_option1(os.path.join(base_path, file_name + "_ENU.csv"),
-                           os.path.join(base_path, "kitti_inter_cleaned_kitti_ENU_hypothesis_flags.csv"),
+                           os.path.join(base_path, "_ENU_hypothesis_flags.csv"),
                            id_col="trash_id", range_col="depth")  # set None if no ranges
-
-# 1) Build graphs for testing data
-# graphs = build_graphs_option1("/media/waqar/data3/GNN/Amsterdam/GNN_v1//pano_bins_images_temp_ENU_testing.csv",
-                              # "/media/waqar/data3/GNN/Amsterdam/GNN_v1//hypothesis_testing.csv",
-                              # id_col="trash_id", range_col="depth")  # set None if no ranges
 
 torch.save(graphs, os.path.join(base_path, file_name + N1 + "_ENU_hypothesis_with_noisy_flags.pt"))
 print(f"Saved {len(graphs)} graphs to graphs_cache.pt")
@@ -232,11 +209,10 @@ print(f"Saved {len(graphs)} graphs to graphs_cache.pt")
 #==============================================#
 '''
 # graphs = torch.load(os.path.join(base_path, file_name + N1 + "_ENU_hypothesis_with_noisy.pt"))
-# graphs = torch.load(os.path.join(base_path, "kitti.pt"))
 # print(f"Loaded {len(graphs)} graphs from cache")
 
 
-graphs = torch.load("/media/waqar/data3/GNN_noisy/n3/subsets_NearObj/test_osm/kitti_inter_cleaned_kitti_ENU_hypothesis_with_noisy_flags.pt")
+graphs = torch.load("/test_osm/_ENU_hypothesis_with_noisy_flags.pt")
 
 records = []
 
@@ -279,29 +255,19 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 # load Model
 # file_name_test = 'Ams_Test_noisy_1_3'
-model_path = '/media/waqar/data3/GNN_noisy/'+ N + '/subsets_NearObj/train_osm/models/'
-# model_name = 'EdgeAwareVH_0.6535381716766967_N0.pth'
-# model_name = 'EdgeAwareVH_2.114723600197723_N1.pth'
-# model_name = 'EdgeAwareVH_2.182091381799566_N2.pth'
-# model_name = 'EdgeAwareVH_2.826739480511795_N3.pth'
-# model_name = 'EdgeAwareVH_2.111315143424143_N_1.pth'
-# model_name = 'EdgeAwareVH_2.088729384711406_N1.pth' # osm flags
-# model_name = 'GAT_4.69__60_20.pth'
-# model_name = 'ECC_0.63__60_20.pth'
-model_name = 'EdgeAwareVH_0.612__60_20.pth'
+model_path = '/models/'
+model_name = ''
 model = torch.load(os.path.join(model_path,model_name))
 model.to(device)
 # print(model)
 
 # load test graph
-graphs = torch.load(os.path.join(base_path, "kitti_inter_cleaned_kitti_ENU_hypothesis_with_noisy_flags.pt"))
-# graphs = torch.load(os.path.join(base_path,  "depths_Ams_camFirst.pt"))
-# graphs = torch.load("/media/waqar/data3/GNN/Amsterdam/osm_bins/kitti/cleaned_by_image_coords_ENU_hypothesis.pt")
-# print(f"Loaded {len(graphs)} graphs name: {file_name}")
+graphs = torch.load(os.path.join(base_path, "_ENU_hypothesis_with_noisy_flags.pt"))
 
-# enu_csv = base_path + file_name + N1 + '_ENU.csv'
+
+
 enu_csv = base_path + file_name + '_ENU.csv'
-# enu_csv = '/media/waqar/data3/GNN/Amsterdam/osm_bins/kitti/cleaned_by_image_coords_ENU.csv'
+
 val_loader   = DataLoader(graphs,   batch_size=1, shuffle=False)
 preds, hyp_conf, max_conf = predict_objects_(model, val_loader,
                         enu_csv, device)
@@ -324,33 +290,25 @@ max_conf.to_csv(os.path.join(base_path, file_name + "_max_conf.csv"), index=Fals
 
 merged_df = merge_close_predictions(
     pred_csv=df_preds,
-    out_csv=os.path.join(base_path, file_name + "_merged_predictions_"+ N +"_eps_10.csv"),
-    eps_meters=10.0  # merge points within 1 meter
+    out_csv=os.path.join(base_path, file_name + "_merged_predictions_"+ N +"_eps_5.csv"),
+    eps_meters=5.0  # merge points within 1 meter
 )
 '''
 
 '''
-
-# kitti_df = predict_NMS(model, val_loader,device)
-# kitti_df.to_csv('/media/waqar/data3/GNN/Amsterdam/osm_bins/kitti/pred_ENU_score.csv', index = False)
-# '''
 
 #===========================================
 # Precision and recall Calculation
 # ===========================================
 '''
 # ---------- 1️⃣  Load CSVs ----------
-# file_name = 'kitti_inter_cleaned'
+
 N = 'n3'
-# N = 'MRF_no_sim'
-base_path = '/media/waqar/data3/GNN_noisy/' + N + '/subsets_NearObj/test_osm/'
-# base_path = '/media/waqar/data3/New_data_Ams_DCC/Amsterdam/New_testing_out/MRF_with_sim/'
-# base_path = '/media/waqar/data3/New_data_Ams_DCC/Amsterdam/New_testing_out/MRF_No_sim/'
-gt_csv = '/media/waqar/data3/GNN_noisy/' + "Amsterdam_20km_bins_selected_test_grouped.csv"
-# gt_csv = '/media/waqar/data3/GNN_noisy/' + "Amsterdam_New_testing_area_bins_images_DepthBearing.csv"
-pred_csv = base_path + file_name + "_merged_predictions_" + N + "_eps_10_ECC.csv"
-# pred_csv = base_path + "0.3_perfect1_pairs.csv"
-# pred_csv = base_path + "0_perfect1_pairs.csv"
+
+base_path = ''
+
+gt_csv = ""
+pred_csv = ""
 df_gt = pd.read_csv(gt_csv)
 df_pred = pd.read_csv(pred_csv)
 print(f"length of detected objects: {len(df_pred)}")
@@ -367,20 +325,12 @@ else:
 
 print(f"Unique GT objects: {len(df_gt_grouped)}")
 
-# ---------- 3️⃣  Haversine distance in meters ----------
-# def haversine(lat1, lon1, lat2, lon2):
-#     R = 6371000.0
-#     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-#     dlon = lon2 - lon1
-#     dlat = lat2 - lat1
-#     a = sin(dlat/2)**2 + cos(lat1)*cos(lat2)*sin(dlon/2)**2
-#     return 2 * R * atan2(sqrt(a), sqrt(1 - a))
 
 # ---------- 4️⃣  Match predicted ↔ GT points ----------
 matches = []
 used_pred = set()
 used_gt = set()
-DIST_THRESH = 10  # meters
+DIST_THRESH = 5  # meters
 
 for i, gt_row in df_gt_grouped.iterrows():
     best_j, best_d = None, np.inf
@@ -436,11 +386,8 @@ print(f"[OK] Saved: {out_csv}")
 
 # ---------- 7️⃣  Compute Precision & Recall ----------
 TP = np.sum(df_out["flag"] >= 1)
-# TP = 124
 FP = np.sum(df_out["flag"] == 0)
-# FP = 47
 FN = len(df_gt_grouped) - len(used_gt)
-# FN = len(df_gt_grouped) - len(used_gt)
 
 # ---------- 8️⃣  Extract and Save False Negatives ----------
 false_negatives = df_gt_grouped[~df_gt_grouped["trash_id"].isin(used_gt)].copy()
