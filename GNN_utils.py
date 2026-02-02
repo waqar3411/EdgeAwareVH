@@ -271,28 +271,6 @@ _WGS84_E2 = _WGS84_F * (2 - _WGS84_F)
 _WGS84_B = _WGS84_A * (1 - _WGS84_F)
 _E2_PRIME = (_WGS84_A**2 - _WGS84_B**2) / _WGS84_B**2
 
-# def _deg2rad(d): return d * math.pi / 180.0
-# def _rad2deg(r): return r * 180.0 / math.pi
-
-# def geodetic_to_ecef(lat, lon, h=0.0):
-#     lat = _deg2rad(lat); lon = _deg2rad(lon)
-#     sinφ, cosφ = math.sin(lat), math.cos(lat)
-#     sinλ, cosλ = math.sin(lon), math.cos(lon)
-#     N = _WGS84_A / math.sqrt(1 - _WGS84_E2 * sinφ * sinφ)
-#     X = (N + h) * cosφ * cosλ
-#     Y = (N + h) * cosφ * sinλ
-#     Z = (N * (1 - _WGS84_E2) + h) * sinφ
-#     return np.array([X, Y, Z], dtype=float)
-
-# def _enu_rotation(lat0, lon0):
-#     lat0 = _deg2rad(lat0); lon0 = _deg2rad(lon0)
-#     sinφ, cosφ = math.sin(lat0), math.cos(lat0)
-#     sinλ, cosλ = math.sin(lon0), math.cos(lon0)
-#     return np.array([
-#         [-sinλ,            cosλ,           0.0],
-#         [-sinφ*cosλ, -sinφ*sinλ,  cosφ],
-#         [ cosφ*cosλ,  cosφ*sinλ,  sinφ]
-#     ], dtype=float)
 
 def enu_to_ecef(E, N, U, lat0, lon0, h0=0.0):
     R = _enu_rotation(lat0, lon0)
@@ -378,31 +356,6 @@ def closest_point_between_2d_rays(P1, d1, P2, d2, MaxObjectDstFromCam=30):
     return np.array([tri_E_mid, tri_N_mid]), resid
 
 
-# from numba import njit
-# @njit
-# def closest_point_between_2d_rays_fast(E1, N1, dE1, dN1, E2, N2, dE2, dN2, MaxObjectDstFromCam=30.0):
-#     a1 = dE1; b1 = dE2; c1 = E2 - E1
-#     a2 = dN1; b2 = dN2; c2 = N2 - N1
-
-#     denom = a2 * b1 - b2 * a1
-#     if abs(denom) < 1e-9:
-#         return math.nan, math.nan, math.inf
-
-#     y = (a1 * c2 - a2 * c1) / denom
-#     x = (b1 * y + c1) / a1 if abs(a1) > 1e-9 else (b2 * y + c2) / a2
-
-#     if (x < 0 or y < 0 or x > MaxObjectDstFromCam or y > MaxObjectDstFromCam):
-#         return math.nan, math.nan, math.inf
-
-#     tri_E1 = E1 + dE1 * x
-#     tri_N1 = N1 + dN1 * x
-#     tri_E2 = E2 + dE2 * y
-#     tri_N2 = N2 + dN2 * y
-
-#     resid = math.hypot(tri_E1 - tri_E2, tri_N1 - tri_N2)
-#     tri_E_mid = (tri_E1 + tri_E2) * 0.5
-#     tri_N_mid = (tri_N1 + tri_N2) * 0.5
-#     return np.array([tri_E_mid, tri_N_mid]), resid
 
 # ==========================================================
 # --- Triangulation grouped per object, auto ENU→LatLon ---
@@ -695,54 +648,6 @@ _WGS84_F = 1 / 298.257223563
 _WGS84_E2 = _WGS84_F * (2 - _WGS84_F)
 _WGS84_B = _WGS84_A * (1 - _WGS84_F)
 _E2_PRIME = (_WGS84_A**2 - _WGS84_B**2) / _WGS84_B**2
-
-# def _deg2rad(d): return d * math.pi / 180.0
-# def _rad2deg(r): return r * 180.0 / math.pi
-
-# def geodetic_to_ecef(lat, lon, h=0.0):
-#     """lat, lon in degrees, h in meters → ECEF X,Y,Z"""
-#     lat = _deg2rad(lat); lon = _deg2rad(lon)
-#     sinφ, cosφ = math.sin(lat), math.cos(lat)
-#     sinλ, cosλ = math.sin(lon), math.cos(lon)
-#     N = _WGS84_A / math.sqrt(1 - _WGS84_E2 * sinφ * sinφ)
-#     X = (N + h) * cosφ * cosλ
-#     Y = (N + h) * cosφ * sinλ
-#     Z = (N * (1 - _WGS84_E2) + h) * sinφ
-#     return np.array([X, Y, Z], dtype=float)
-
-# def _enu_rotation(lat0, lon0):
-#     lat0 = _deg2rad(lat0); lon0 = _deg2rad(lon0)
-#     sinφ, cosφ = math.sin(lat0), math.cos(lat0)
-#     sinλ, cosλ = math.sin(lon0), math.cos(lon0)
-#     return np.array([
-#         [-sinλ,            cosλ,           0.0],
-#         [-sinφ*cosλ, -sinφ*sinλ,  cosφ],
-#         [ cosφ*cosλ,  cosφ*sinλ,  sinφ]
-#     ], dtype=float)
-
-# def enu_to_ecef(E, N, U, lat0, lon0, h0=0.0):
-#     R = _enu_rotation(lat0, lon0)
-#     X0, Y0, Z0 = geodetic_to_ecef(lat0, lon0, h0)
-#     return (R.T @ np.array([E, N, U], float)) + np.array([X0, Y0, Z0], float)
-
-# def ecef_to_geodetic(X, Y, Z):
-#     lon = math.atan2(Y, X)
-#     p = math.hypot(X, Y)
-#     θ = math.atan2(Z * _WGS84_A, p * _WGS84_B)
-#     sinθ, cosθ = math.sin(θ), math.cos(θ)
-#     lat = math.atan2(
-#         Z + _E2_PRIME * _WGS84_B * sinθ**3,
-#         p - _WGS84_E2 * _WGS84_A * cosθ**3
-#     )
-#     sinφ = math.sin(lat)
-#     N = _WGS84_A / math.sqrt(1 - _WGS84_E2 * sinφ * sinφ)
-#     h = p / math.cos(lat) - N
-#     return _rad2deg(lat), _rad2deg(lon), h
-
-# def enu_to_latlon(E, N, U, origin_lat, origin_lon, origin_h=0.0):
-#     """Convert ENU offset back to geodetic lat/lon."""
-#     X, Y, Z = enu_to_ecef(E, N, U, origin_lat, origin_lon, origin_h)
-#     return ecef_to_geodetic(X, Y, Z)
 
 from sklearn.cluster import DBSCAN
 
